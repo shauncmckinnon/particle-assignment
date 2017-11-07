@@ -60,7 +60,7 @@ void ParticleEmitter::update(float dt)
 				particle->life = Math::lerp(lifeRange.x, lifeRange.y, randomTval);
 				particle->mass = Math::lerp(massRange.x, massRange.y, randomTval);
 
-				particle->position = emitterPosition;
+				particle->position = emitterPosition + glm::vec3(50.0f, 0.0f, 0.0f) + Math::lerp(0.0f, 5.0f, randomTval);
 
 				particle->size = Math::lerp(sizeRange.x, sizeRange.y, randomTval);
 				particle->velocity = Math::lerp(velocity0, velocity1, randomTval);
@@ -95,7 +95,7 @@ void ParticleEmitter::draw()
 	// Draw the emitter position
 	// Note: not necessary
 	TTK::Graphics::DrawTeapot(emitterPosition, 50.0f, glm::vec4(1.0f));
-
+	
 	Particle* p = m_pParticles;
 	for (int i = 0; i < m_pNumParticles; ++i, ++p)
 	{

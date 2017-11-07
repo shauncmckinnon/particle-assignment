@@ -51,18 +51,40 @@ ParticleEffect particleEffect;
 Utility utilities;
 std::vector<std::string> fileList; // file list
 
+std::vector<ParticleEmitter> emitter;
+
+void SetUpEmitter();
 
 // Initialize
 void Initialize()
 {
 	// add one particle effect
 	ParEmitSettings peSettings;
-	particleEffect.parEmitSettings.push_back(peSettings);
+	//particleEffect.parEmitSettings.push_back(peSettings);
 
 	// file list
 	fileList = utilities.fileLister(WORKING_DIRECTORY, "*.dat");
 }
 
+// These values are controlled by imgui
+bool applySeekingForce = true;
+bool magnetActive = false;
+float seekingForceScale = 200.0f;
+float minSeekingForceScale = -200.0f;
+float maxSeekingForceScale = 200.0f;
+
+void applyForcesToParticleSystem(ParticleEmitter* e, glm::vec3 target)
+{
+	// TODO: implement seeking
+	// Loop through each particle in the emitter and apply a seeking for to them
+	for (int i = 0; i < e->getNumParticles(); i++) {
+		glm::vec3 seekVector = target - e->getParticlePosition(i);
+		glm::vec3 seekDirection = glm::normalize(seekVector);
+		glm::vec3 seekForce = seekDirection * seekingForceScale;
+
+		e->applyForceToParticle(i, seekForce);
+	}
+}
 
 // Timer
 void TimerCallbackFunction(int value)
@@ -86,7 +108,9 @@ void TimerCallbackFunction(int value)
 // Window Methods
 void WindowReshapeCallbackFunction(int w, int h)
 {
-
+	// Update our Window Properties
+	windowWidth = w;
+	windowHeight = h;
 }
 
 
@@ -94,9 +118,12 @@ void WindowReshapeCallbackFunction(int w, int h)
 void DisplayCallbackFunction(void)
 {
 	// setting up
-	TTK::Graphics::SetBackgroundColour(0.0f, 0.0f, 0.0f);
+	TTK::Graphics::SetBackgroundColour(0.10f, 0.10f, 0.10f);
 	TTK::Graphics::ClearScreen();
 	TTK::Graphics::SetCameraMode2D(windowWidth, windowHeight);
+
+	//TTK::Graphics::DrawCube(glm::vec3(200.0f, 300.0f, 0.0f), 35.0f, glm::vec4(1.0f, 1.0f, 0.0f, 1.0f));
+	TTK::Graphics::DrawCube(glm::vec3(500, 700, 0), 35.0f, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
 
 	// ImGui Start
 	TTK::Graphics::StartUI(windowWidth, windowHeight);
@@ -109,7 +136,7 @@ void DisplayCallbackFunction(void)
 	ImGui::InputText("Particle Effect Name", peName, IM_ARRAYSIZE(peName));
 		
 	// Saving the particle effect
-	if (ImGui::Button("Save Particle Effect"))
+	if (ImGui::Button("Create/Save Particle Effect"))
 	{
 		particleEffect.name = peName;
 
@@ -118,7 +145,10 @@ void DisplayCallbackFunction(void)
 
 		// reinit file list
 		fileList = utilities.fileLister(WORKING_DIRECTORY, "*.dat");
+		SetUpEmitter();
 	}
+
+	ImGui::Separator();
 
 	// loading files
 	std::stringstream listStream;
@@ -130,22 +160,43 @@ void DisplayCallbackFunction(void)
 	static int listIndex = 0;
 	static int particleEmitterIndex = 0;
 
-	ImGui::Combo("Load Particle Effect", &listIndex, listStream.str().c_str());
-	static int lastIndex = 0;
-	if (listIndex != lastIndex) {
-		particleEmitterIndex = 0;
-		lastIndex = listIndex;
-		if (listIndex != 0) {
-			std::string theLoadFile = fileList[listIndex - 1];
 
-			// reset the peName
-			memset(peName, 0, 255);
-			for (int i = 0; i < (theLoadFile.length() - 4); i++) {
-				peName[i] = theLoadFile[i];
+	if (fileList.size() > 0) {
+		ImGui::Combo("Load Particle Effect", &listIndex, listStream.str().c_str());
+		
+		static int lastIndex = 0;
+		if (listIndex != lastIndex) {
+			particleEmitterIndex = 0;
+			lastIndex = listIndex;
+			
+			//emitter.clear();
+			std::cout << "Clearing the emitter" << std::endl;
+
+			if (listIndex != 0) {
+				std::string theLoadFile = fileList[listIndex - 1];
+
+				// reset the peName
+				memset(peName, 0, 255);
+				for (int i = 0; i < (theLoadFile.length() - 4); i++) {
+					peName[i] = theLoadFile[i];
+				}
+
+				// load the settings
+				particleEffect.load(theLoadFile);
+
+				//Set up the emitter
+				SetUpEmitter();	
 			}
-
-			// load the settings
-			particleEffect.load(theLoadFile);
+			else
+			{
+				particleEffect.load("DoNotUseThisFile");
+				memset(peName, 0, 255);
+				
+				std::string theHiddenFileName = "NewFile";
+				for (int i = 0; i < theHiddenFileName.length(); i++) {
+					peName[i] = theHiddenFileName[i];
+				}
+			}
 		}
 	}
 
@@ -156,6 +207,8 @@ void DisplayCallbackFunction(void)
 		particleEffect.parEmitSettings.push_back(newPeSettings);
 	}
 
+	ImGui::Separator();
+
 	std::stringstream peIndexList;
 
 	for (int i = 0; i < particleEffect.parEmitSettings.size(); i++)
@@ -164,36 +217,98 @@ void DisplayCallbackFunction(void)
 		peIndexList.write("\0", 1);
 	}
 
-	ImGui::Combo("Select Particle Emitter", &particleEmitterIndex, peIndexList.str().c_str());
 
-	// Input for the particle effect name	
-	ImGui::InputFloat3("Position", &particleEffect.parEmitSettings[particleEmitterIndex].position[0]);
-	ImGui::InputFloat3("Offset", &particleEffect.parEmitSettings[particleEmitterIndex].offset[0]);
-	ImGui::InputFloat3("Velocity", &particleEffect.parEmitSettings[particleEmitterIndex].velocity[0]);
-	ImGui::InputFloat3("Acceleration", &particleEffect.parEmitSettings[particleEmitterIndex].acceleration[0]);
-	ImGui::InputFloat3("Force", &particleEffect.parEmitSettings[particleEmitterIndex].force[0]);
+	if (particleEffect.parEmitSettings.size() > 0) {
+		ImGui::Combo("Select Particle Emitter", &particleEmitterIndex, peIndexList.str().c_str());
 
-	ImGui::ColorEdit4("Start Color", &particleEffect.parEmitSettings[particleEmitterIndex].colorStart[0]);
-	ImGui::ColorEdit4("End Color", &particleEffect.parEmitSettings[particleEmitterIndex].colorEnd[0]);
+		// Input for the particle effect name	
+		ImGui::InputFloat3("Position", &particleEffect.parEmitSettings[particleEmitterIndex].position[0]);
+		ImGui::InputFloat3("Offset", &particleEffect.parEmitSettings[particleEmitterIndex].offset[0]);
+		ImGui::InputFloat3("Velocity", &particleEffect.parEmitSettings[particleEmitterIndex].velocity[0]);
+		ImGui::InputFloat3("Acceleration", &particleEffect.parEmitSettings[particleEmitterIndex].acceleration[0]);
+		ImGui::InputFloat3("Force", &particleEffect.parEmitSettings[particleEmitterIndex].force[0]);
+
+		ImGui::ColorEdit4("Start Color", &particleEffect.parEmitSettings[particleEmitterIndex].colorStart[0]);
+		ImGui::ColorEdit4("End Color", &particleEffect.parEmitSettings[particleEmitterIndex].colorEnd[0]);
+
+		ImGui::InputFloat("Mass", &particleEffect.parEmitSettings[particleEmitterIndex].mass);
+		ImGui::InputFloat("Size", &particleEffect.parEmitSettings[particleEmitterIndex].size);
+		ImGui::InputFloat("Life Time", &particleEffect.parEmitSettings[particleEmitterIndex].lifetime);
+		ImGui::InputFloat("Rate", &particleEffect.parEmitSettings[particleEmitterIndex].rate);
+		ImGui::InputFloat("Duration", &particleEffect.parEmitSettings[particleEmitterIndex].duration);
+
+		ImGui::Checkbox("Gravity", &particleEffect.parEmitSettings[particleEmitterIndex].gravity);
+		ImGui::Checkbox("Seek", &particleEffect.parEmitSettings[particleEmitterIndex].seekToPoint);
+		ImGui::Checkbox("Flee", &particleEffect.parEmitSettings[particleEmitterIndex].fleeFromPoint);
+		ImGui::Checkbox("Repel", &particleEffect.parEmitSettings[particleEmitterIndex].repel);
+		ImGui::Checkbox("Attract", &particleEffect.parEmitSettings[particleEmitterIndex].attract);
+		ImGui::Checkbox("Follow Path", &particleEffect.parEmitSettings[particleEmitterIndex].followPath);
+	}
 	
-	ImGui::InputFloat("Mass", &particleEffect.parEmitSettings[particleEmitterIndex].mass);
-	ImGui::InputFloat("Size", &particleEffect.parEmitSettings[particleEmitterIndex].size);
-	ImGui::InputFloat("Life Time", &particleEffect.parEmitSettings[particleEmitterIndex].lifetime);
-	ImGui::InputFloat("Rate", &particleEffect.parEmitSettings[particleEmitterIndex].rate);
-	ImGui::InputFloat("Duration", &particleEffect.parEmitSettings[particleEmitterIndex].duration);
+	
+	if (particleEffect.parEmitSettings.size() > 0) {
 
-	ImGui::Checkbox("Gravity", &particleEffect.parEmitSettings[particleEmitterIndex].gravity);
-	ImGui::Checkbox("Seek", &particleEffect.parEmitSettings[particleEmitterIndex].seekToPoint);
-	ImGui::Checkbox("Flee", &particleEffect.parEmitSettings[particleEmitterIndex].fleeFromPoint);
-	ImGui::Checkbox("Repel", &particleEffect.parEmitSettings[particleEmitterIndex].repel);
-	ImGui::Checkbox("Attract", &particleEffect.parEmitSettings[particleEmitterIndex].attract);
-	ImGui::Checkbox("Follow Path", &particleEffect.parEmitSettings[particleEmitterIndex].followPath);
+		if (emitter.size() > 0) {
+			for (int i = 0; i < emitter.size(); i++)
+			{
+				// update emitter
 
+				// Physics properties
+				emitter[i].emitterPosition = particleEffect.parEmitSettings[i].position;// mousePositionFlipped;// particleEffect.parEmitSettings[i].position;
+
+				// Visual Properties
+				emitter[i].colour0 = particleEffect.parEmitSettings[i].colorStart;
+				emitter[i].colour1 = particleEffect.parEmitSettings[i].colorEnd;
+				
+				applyForcesToParticleSystem(&emitter[i], glm::vec3(500, 700, 0));
+
+				emitter[i].update(deltaTime);
+				emitter[i].draw();
+			}
+		}
+	}
 
 	// ImGui End and Render
 	TTK::Graphics::EndUI();
 
 	glutSwapBuffers();
+}
+
+void UpdateEmitters()
+{
+}
+
+void SetUpEmitter()
+{
+	emitter.clear();
+	for (int i = 0; i < particleEffect.parEmitSettings.size(); i++)
+	{
+		ParticleEmitter parEmit;
+		emitter.push_back(parEmit);
+	}
+
+	for (int i = 0; i < particleEffect.parEmitSettings.size(); i++)
+	{
+		//std::cout << "ParEff.ParEmiSet.size: " << particleEffect.parEmitSettings.size() << ", Emitter.size: " << emitter.size() << std::endl;
+
+		// Physics properties
+		//emitter[i].emitterPosition = particleEffect.parEmitSettings[i].position;
+
+		emitter[i].velocity0 = particleEffect.parEmitSettings[i].velocity - glm::vec3(25.0f, 25.0f, 0.0f);
+		emitter[i].velocity1 = particleEffect.parEmitSettings[i].velocity + glm::vec3(25.0f, 25.0f, 0.0f);
+		emitter[i].massRange = glm::vec2(particleEffect.parEmitSettings[i].mass - 0.05, particleEffect.parEmitSettings[i].mass + 0.05);
+
+		// Visual Properties
+		//emitter[i].colour0 = particleEffect.parEmitSettings[i].colorStart;
+		//emitter[i].colour1 = particleEffect.parEmitSettings[i].colorEnd;
+		emitter[i].lifeRange = glm::vec2(particleEffect.parEmitSettings[i].lifetime - 5.0, particleEffect.parEmitSettings[i].lifetime + 5.0);
+		emitter[i].sizeRange = glm::vec2(particleEffect.parEmitSettings[i].size - 0.3, particleEffect.parEmitSettings[i].size + 0.30);
+
+		// Create the particles
+		emitter[i].initialize(particleEffect.parEmitSettings[i].rate);
+
+		//applyForcesToParticleSystem(&emitter[i], glm::vec3(500, 700, 0));
+	}
 }
 
 // Keyboard Methods

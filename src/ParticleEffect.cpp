@@ -54,7 +54,6 @@ bool ParticleEffect::save() {
 
 	for (int i = 0; i < parEmitSettings.size(); i++)
 	{
-		std::cout << parEmitSettings[i].position.x << ", " << parEmitSettings[i].position.y << std::endl;
 		savefile.write(RAW(&parEmitSettings[i]), sizeof(ParEmitSettings));
 	}
 
