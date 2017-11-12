@@ -54,19 +54,17 @@ void ParticleEmitter::update(float dt)
 			{
 				// Respawn particle
 				// Note: we are not freeing memory, we are "Recycling" the particles
-				particle->acceleration = glm::vec3(0.0f);
+				particle->acceleration = parEmitSettings.acceleration;
 				float randomTval = glm::linearRand(0.0f, 1.0f);
-				particle->colour = Math::lerp(colour0, colour1, randomTval);
-				particle->life = Math::lerp(lifeRange.x, lifeRange.y, randomTval);
-				particle->mass = Math::lerp(massRange.x, massRange.y, randomTval);
+				particle->colour = Math::lerp(parEmitSettings.colorStart, parEmitSettings.colorEnd, randomTval);
+				particle->life = Math::lerp(parEmitSettings.lifetime.x, parEmitSettings.lifetime.y, randomTval);
+				particle->mass = Math::lerp(parEmitSettings.mass.x, parEmitSettings.mass.y, randomTval);
 
-				particle->position = emitterPosition + glm::vec3(50.0f, 0.0f, 0.0f) + Math::lerp(0.0f, 5.0f, randomTval);
+				particle->position = emitterPosition + parEmitSettings.offset + Math::lerp(0.0f, 5.0f, randomTval);
 
-				particle->size = Math::lerp(sizeRange.x, sizeRange.y, randomTval);
-				particle->velocity = Math::lerp(velocity0, velocity1, randomTval);
+				particle->size = Math::lerp(parEmitSettings.size.x, parEmitSettings.size.y, randomTval);
+				particle->velocity = Math::lerp(glm::vec3(0.f, 0.f, 0.f), parEmitSettings.velocity, randomTval);
 			}
-			
-			// Update physics
 
 			// Update acceleration (basic Newtonian physics)
 			particle->acceleration = particle->force / particle->mass;
@@ -84,7 +82,7 @@ void ParticleEmitter::update(float dt)
 			{
 				// calculate t value
 				float tVal = Math::invLerp(particle->life, lifeRange.x, lifeRange.y);
-				particle->colour = Math::lerp(colour0, colour1, tVal);
+				particle->colour = Math::lerp(parEmitSettings.colorStart, parEmitSettings.colorEnd, tVal);
 			}
 		}
 	}

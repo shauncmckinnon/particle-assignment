@@ -51,10 +51,6 @@ ParticleEffect particleEffect;
 Utility utilities;
 std::vector<std::string> fileList; // file list
 
-std::vector<ParticleEmitter> emitter;
-
-void SetUpEmitter();
-
 // Initialize
 void Initialize()
 {
@@ -146,7 +142,7 @@ void DisplayCallbackFunction(void)
 
 		// reinit file list
 		fileList = utilities.fileLister(WORKING_DIRECTORY, "*.dat");
-		SetUpEmitter();
+		particleEffect.setupEmitters();
 	}
 
 	ImGui::Separator();
@@ -186,7 +182,7 @@ void DisplayCallbackFunction(void)
 				particleEffect.load(theLoadFile);
 
 				//Set up the emitter
-				SetUpEmitter();	
+				particleEffect.setupEmitters();
 			}
 			else
 			{
@@ -211,7 +207,7 @@ void DisplayCallbackFunction(void)
 	ImGui::Separator();
 
 	std::stringstream peIndexList;
-
+	// List of Emitters for this particle effect
 	for (int i = 0; i < particleEffect.parEmitSettings.size(); i++)
 	{
 		peIndexList << i;
@@ -223,6 +219,7 @@ void DisplayCallbackFunction(void)
 		ImGui::Combo("Select Particle Emitter", &particleEmitterIndex, peIndexList.str().c_str());
 
 		// Input for the particle effect name	
+		ImGui::InputInt("Number of Particles", &particleEffect.parEmitSettings[particleEmitterIndex].numOfPar);
 		ImGui::InputFloat3("Position", &particleEffect.parEmitSettings[particleEmitterIndex].position[0]);
 		ImGui::InputFloat3("Offset", &particleEffect.parEmitSettings[particleEmitterIndex].offset[0]);
 		ImGui::InputFloat3("Velocity", &particleEffect.parEmitSettings[particleEmitterIndex].velocity[0]);
@@ -232,11 +229,11 @@ void DisplayCallbackFunction(void)
 		ImGui::ColorEdit4("Start Color", &particleEffect.parEmitSettings[particleEmitterIndex].colorStart[0]);
 		ImGui::ColorEdit4("End Color", &particleEffect.parEmitSettings[particleEmitterIndex].colorEnd[0]);
 
-		ImGui::SliderFloat("Mass", &particleEffect.parEmitSettings[particleEmitterIndex].mass, 0.5f, 0.75f);
-		ImGui::SliderFloat("Size", &particleEffect.parEmitSettings[particleEmitterIndex].size, 1.0f, 30.0f);
-		ImGui::SliderFloat("Life Time", &particleEffect.parEmitSettings[particleEmitterIndex].lifetime, 10.0f, 50.0f);
-		ImGui::SliderFloat("Rate", &particleEffect.parEmitSettings[particleEmitterIndex].rate, 20.0f, 1000.0f);
-		ImGui::SliderFloat("Duration", &particleEffect.parEmitSettings[particleEmitterIndex].duration, 1.0f, 20.0f);
+		ImGui::SliderFloat2("Mass Range", &particleEffect.parEmitSettings[particleEmitterIndex].mass[0], 0.1, 1.0f);
+		ImGui::SliderFloat2("Size Range", &particleEffect.parEmitSettings[particleEmitterIndex].size[0], 0.1f, 30.0f);
+		ImGui::SliderFloat2("Life Time Range", &particleEffect.parEmitSettings[particleEmitterIndex].lifetime[0], 10.0f, 50.0f);
+		ImGui::SliderFloat2("Rate Range", &particleEffect.parEmitSettings[particleEmitterIndex].rate[0], 20.0f, 1000.0f);
+		ImGui::SliderFloat("Duration Range", &particleEffect.parEmitSettings[particleEmitterIndex].duration, 1.0f, 100.0f);
 
 		ImGui::Checkbox("Gravity", &particleEffect.parEmitSettings[particleEmitterIndex].gravity);
 		ImGui::Checkbox("Seek", &particleEffect.parEmitSettings[particleEmitterIndex].seekToPoint);
@@ -246,25 +243,33 @@ void DisplayCallbackFunction(void)
 		ImGui::Checkbox("Follow Path", &particleEffect.parEmitSettings[particleEmitterIndex].followPath);
 	}
 	
-	
+	// REAL TIME EMITTER SETTINGS (NOT SAVED TILL YOU SAVE IT)
 	if (particleEffect.parEmitSettings.size() > 0) {
-
-		if (emitter.size() > 0) {
-			for (int i = 0; i < emitter.size(); i++)
+		if (particleEffect.emitters.size() > 0) {
+			for (int i = 0; i < particleEffect.emitters.size(); i++)
 			{
-				// update emitter
+				// Updates emitter position
+				particleEffect.emitters[i].emitterPosition = particleEffect.parEmitSettings[i].position;
+				// mousePositionFlipped;// particleEffect.parEmitSettings[i].position;
 
-				// Physics properties
-				emitter[i].emitterPosition = particleEffect.parEmitSettings[i].position;// mousePositionFlipped;// particleEffect.parEmitSettings[i].position;
+				// Updates colour options
+				particleEffect.emitters[i].parEmitSettings.colorStart = particleEffect.parEmitSettings[i].colorStart;
+				particleEffect.emitters[i].parEmitSettings.colorEnd   = particleEffect.parEmitSettings[i].colorEnd;
 
-				// Visual Properties
-				emitter[i].colour0 = particleEffect.parEmitSettings[i].colorStart;
-				emitter[i].colour1 = particleEffect.parEmitSettings[i].colorEnd;
+				// Update lifetime
+				particleEffect.emitters[i].parEmitSettings.lifetime = particleEffect.parEmitSettings[i].lifetime;
+				particleEffect.emitters[i].parEmitSettings.size     = particleEffect.parEmitSettings[i].size;
+				particleEffect.emitters[i].parEmitSettings.mass     = particleEffect.parEmitSettings[i].mass;
 				
-				applyForcesToParticleSystem(&emitter[i], glm::vec3(500, 700, 0));
+				// physics
+				particleEffect.emitters[i].parEmitSettings.seekToPoint = particleEffect.parEmitSettings[i].seekToPoint;
+				if (particleEffect.emitters[i].parEmitSettings.seekToPoint) {
+					applyForcesToParticleSystem(&particleEffect.emitters[i], glm::vec3(500, 700, 0));
+				}
 
-				emitter[i].update(deltaTime);
-				emitter[i].draw();
+				// update and draw
+				particleEffect.emitters[i].update(deltaTime);
+				particleEffect.emitters[i].draw();
 			}
 		}
 	}
@@ -277,39 +282,6 @@ void DisplayCallbackFunction(void)
 
 void UpdateEmitters()
 {
-}
-
-void SetUpEmitter()
-{
-	emitter.clear();
-	for (int i = 0; i < particleEffect.parEmitSettings.size(); i++)
-	{
-		ParticleEmitter parEmit;
-		emitter.push_back(parEmit);
-	}
-
-	for (int i = 0; i < particleEffect.parEmitSettings.size(); i++)
-	{
-		//std::cout << "ParEff.ParEmiSet.size: " << particleEffect.parEmitSettings.size() << ", Emitter.size: " << emitter.size() << std::endl;
-
-		// Physics properties
-		//emitter[i].emitterPosition = particleEffect.parEmitSettings[i].position;
-
-		emitter[i].velocity0 = particleEffect.parEmitSettings[i].velocity - glm::vec3(25.0f, 25.0f, 0.0f);
-		emitter[i].velocity1 = particleEffect.parEmitSettings[i].velocity + glm::vec3(25.0f, 25.0f, 0.0f);
-		emitter[i].massRange = glm::vec2(particleEffect.parEmitSettings[i].mass - 0.05, particleEffect.parEmitSettings[i].mass + 0.05);
-
-		// Visual Properties
-		//emitter[i].colour0 = particleEffect.parEmitSettings[i].colorStart;
-		//emitter[i].colour1 = particleEffect.parEmitSettings[i].colorEnd;
-		emitter[i].lifeRange = glm::vec2(particleEffect.parEmitSettings[i].lifetime - 5.0, particleEffect.parEmitSettings[i].lifetime + 5.0);
-		emitter[i].sizeRange = glm::vec2(particleEffect.parEmitSettings[i].size - 0.3, particleEffect.parEmitSettings[i].size + 0.30);
-
-		// Create the particles
-		emitter[i].initialize(particleEffect.parEmitSettings[i].rate);
-
-		//applyForcesToParticleSystem(&emitter[i], glm::vec3(500, 700, 0));
-	}
 }
 
 // Keyboard Methods

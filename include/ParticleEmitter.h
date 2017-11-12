@@ -34,19 +34,20 @@ struct Particle
 };
 
 struct ParEmitSettings {
+	int			 numOfPar      = 10;
 	glm::vec3	 position	   = glm::vec3(0.0f, 0.0f, 0.0f);
 	glm::vec3	 velocity	   = glm::vec3(0.0f, 0.0f, 0.0f);
 	glm::vec3	 acceleration  = glm::vec3(0.0f, 0.0f, 0.0f);
 	glm::vec3	 force		   = glm::vec3(0.0f, 0.0f, 0.0f);
-	float		 mass		   = 0.0f;
-	float		 size		   = 0.0f;
-	float		 lifetime	   = 0.0f;
-	bool		 gravity	   = false;
-	float		 rate		   = 0.0f;
-	float		 duration	   = 0.0f;
+	glm::vec3	 offset        = glm::vec3(0.0f, 0.0f, 0.0f);
 	glm::vec4	 colorStart    = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-	glm::vec4	 colorEnd	   = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-	glm::vec3	 offset		   = glm::vec3(0.0f, 0.0f, 0.0f);
+	glm::vec4	 colorEnd      = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+	glm::vec2	 mass		   = glm::vec2(0.1f, 1.0f);
+	glm::vec2	 size		   = glm::vec2(0.1f, 30.0f);
+	glm::vec2	 lifetime	   = glm::vec2(10.0f, 50.0f);
+	glm::vec2	 rate		   = glm::vec2(0.0f, 1.0f);
+	float	 duration		   = 20.0f;
+	bool		 gravity = false;
 	bool		 seekToPoint   = false;
 	bool		 fleeFromPoint = false;
 	bool		 repel		   = false;
@@ -88,9 +89,7 @@ public:
 	bool interpolateColour;
 
 	///// Initial properties for newly spawned particles
-
 	glm::vec3 emitterPosition;
-	// TODO: Add "box emitter" properties (float width, float height, bool enabled)
 	float width, height;
 	bool enabled;
 
@@ -106,9 +105,5 @@ public:
 	glm::vec4 colour0;
 	glm::vec4 colour1;
 
-	// ... other properties
-	// ... what would be a better way of doing this?
-	// Make a keyframe controller for each property! this gives you max control!!
-	// See the KeyframeController class
-	// (this is what full out particle editors do, ie popcorn fx)
+	ParEmitSettings parEmitSettings;
 };
