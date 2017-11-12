@@ -94,7 +94,7 @@ void ParticleEmitter::draw()
 {
 	// Draw the emitter position
 	// Note: not necessary
-	TTK::Graphics::DrawTeapot(emitterPosition, 50.0f, glm::vec4(1.0f));
+	TTK::Graphics::DrawCube(emitterPosition, 50.0f, glm::vec4(1.0f));
 	
 	Particle* p = m_pParticles;
 	for (int i = 0; i < m_pNumParticles; ++i, ++p)
