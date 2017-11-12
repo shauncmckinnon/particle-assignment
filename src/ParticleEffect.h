@@ -18,6 +18,7 @@ public:
 	int getFileSize(const std::string &fileName);
 	bool save();
 	ParticleEffectSettings load(std::string filename);
+	void setupEmitters();
 	friend std::ostream& operator << (std::ostream& stream, ParticleEffectSettings settings);
 
 	// data members

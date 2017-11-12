@@ -112,6 +112,38 @@ ParticleEffectSettings ParticleEffect::load(std::string filename) {
 	return peSettings;
 }
 
+void ParticleEffect::setupEmitters() {
+	emitters.clear();
+	for (int i = 0; i < parEmitSettings.size(); i++)
+	{
+		ParticleEmitter parEmit;
+		emitters.push_back(parEmit);
+	}
+
+	for (int i = 0; i < parEmitSettings.size(); i++)
+	{
+		//std::cout << "ParEff.ParEmiSet.size: " << particleEffect.parEmitSettings.size() << ", Emitter.size: " << emitter.size() << std::endl;
+
+		// Physics properties
+		emitters[i].emitterPosition = parEmitSettings[i].position;
+
+		emitters[i].velocity0 = parEmitSettings[i].velocity - glm::vec3(25.0f, 25.0f, 0.0f);
+		emitters[i].velocity1 = parEmitSettings[i].velocity + glm::vec3(25.0f, 25.0f, 0.0f);
+		emitters[i].massRange = glm::vec2(parEmitSettings[i].mass - 0.05,  parEmitSettings[i].mass + 0.05);
+
+		// Visual Properties
+		emitters[i].colour0 = parEmitSettings[i].colorStart;
+		emitters[i].colour1 = parEmitSettings[i].colorEnd;
+		emitters[i].lifeRange = glm::vec2(parEmitSettings[i].lifetime - 5.0, parEmitSettings[i].lifetime + 5.0);
+		emitters[i].sizeRange = glm::vec2(parEmitSettings[i].size - 0.3, parEmitSettings[i].size + 0.30);
+
+		// Create the particles
+		emitters[i].initialize(parEmitSettings[i].rate);
+
+		//applyForcesToParticleSystem(&emitter[i], glm::vec3(500, 700, 0));
+	}
+}
+
 std::ostream& operator << (std::ostream& stream, ParticleEffectSettings settings) {
 	stream << "Name: " << settings.name << ", " << "Emitter Count: " << settings.parEmitSettings.size();
 	return stream;
