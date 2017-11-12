@@ -121,6 +121,7 @@ void DisplayCallbackFunction(void)
 	TTK::Graphics::SetBackgroundColour(0.10f, 0.10f, 0.10f);
 	TTK::Graphics::ClearScreen();
 	TTK::Graphics::SetCameraMode2D(windowWidth, windowHeight);
+	// TTK::Graphics::SetCameraMode3D(windowWidth, windowHeight);
 
 	//TTK::Graphics::DrawCube(glm::vec3(200.0f, 300.0f, 0.0f), 35.0f, glm::vec4(1.0f, 1.0f, 0.0f, 1.0f));
 	TTK::Graphics::DrawCube(glm::vec3(500, 700, 0), 35.0f, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
@@ -231,11 +232,11 @@ void DisplayCallbackFunction(void)
 		ImGui::ColorEdit4("Start Color", &particleEffect.parEmitSettings[particleEmitterIndex].colorStart[0]);
 		ImGui::ColorEdit4("End Color", &particleEffect.parEmitSettings[particleEmitterIndex].colorEnd[0]);
 
-		ImGui::InputFloat("Mass", &particleEffect.parEmitSettings[particleEmitterIndex].mass);
-		ImGui::InputFloat("Size", &particleEffect.parEmitSettings[particleEmitterIndex].size);
-		ImGui::InputFloat("Life Time", &particleEffect.parEmitSettings[particleEmitterIndex].lifetime);
-		ImGui::InputFloat("Rate", &particleEffect.parEmitSettings[particleEmitterIndex].rate);
-		ImGui::InputFloat("Duration", &particleEffect.parEmitSettings[particleEmitterIndex].duration);
+		ImGui::SliderFloat("Mass", &particleEffect.parEmitSettings[particleEmitterIndex].mass, 0.5f, 0.75f);
+		ImGui::SliderFloat("Size", &particleEffect.parEmitSettings[particleEmitterIndex].size, 1.0f, 30.0f);
+		ImGui::SliderFloat("Life Time", &particleEffect.parEmitSettings[particleEmitterIndex].lifetime, 10.0f, 50.0f);
+		ImGui::SliderFloat("Rate", &particleEffect.parEmitSettings[particleEmitterIndex].rate, 20.0f, 1000.0f);
+		ImGui::SliderFloat("Duration", &particleEffect.parEmitSettings[particleEmitterIndex].duration, 1.0f, 20.0f);
 
 		ImGui::Checkbox("Gravity", &particleEffect.parEmitSettings[particleEmitterIndex].gravity);
 		ImGui::Checkbox("Seek", &particleEffect.parEmitSettings[particleEmitterIndex].seekToPoint);

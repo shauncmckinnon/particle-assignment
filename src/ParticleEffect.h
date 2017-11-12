@@ -24,4 +24,5 @@ public:
 	int peID = 0;
 	std::string name = "default";
 	std::vector<ParEmitSettings> parEmitSettings;
+	std::vector<ParticleEmitter> emitters;
 };
