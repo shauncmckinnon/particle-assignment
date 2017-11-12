@@ -1,0 +1,8 @@
+*.suo
+*.tlog
+*.log
+*.pdb
+*.vs
+*.obj
+*.git
+*.exe
