@@ -69,7 +69,9 @@ float seekingForceScale = 200.0f;
 float minSeekingForceScale = -200.0f;
 float maxSeekingForceScale = 200.0f;
 
-void applyForcesToParticleSystem(ParticleEmitter* e, glm::vec3 target)
+// PHYSICS //
+// Seek
+void seek(ParticleEmitter* e, glm::vec3 target)
 {
 	// TODO: implement seeking
 	// Loop through each particle in the emitter and apply a seeking for to them
@@ -81,6 +83,19 @@ void applyForcesToParticleSystem(ParticleEmitter* e, glm::vec3 target)
 		e->applyForceToParticle(i, seekForce);
 	}
 }
+
+// Flee
+void flee(ParticleEmitter* e, glm::vec3 target)
+{
+	for (int i = 0; i < e->getNumParticles(); i++) {
+		glm::vec3 fleeVector = target + e->getParticlePosition(i);
+		glm::vec3 fleeDirection = glm::normalize(fleeVector);
+		glm::vec3 seekForce = fleeDirection * seekingForceScale;
+
+		e->applyForceToParticle(i, seekForce);
+	}
+}
+
 
 // Timer
 void TimerCallbackFunction(int value)
@@ -262,30 +277,33 @@ void DisplayCallbackFunction(void)
 				particleEffect.emitters[i].parEmitSettings.mass     = particleEffect.parEmitSettings[i].mass;
 				
 
-				// physics //
+				// PHYSICS METHODS (THESE SHOULD BE MOVED INTO A MORE LOGICAL PLACE) //
 				// Seek
 				particleEffect.emitters[i].parEmitSettings.seekToPoint = particleEffect.parEmitSettings[i].seekToPoint;
 				if (particleEffect.emitters[i].parEmitSettings.seekToPoint) {
 					std::cout << "I'M GOING TO FIND YOU" << std::endl;
-					applyForcesToParticleSystem(&particleEffect.emitters[i], glm::vec3(500, 700, 0));
+					seek(&particleEffect.emitters[i], glm::vec3(500, 700, 0));
 				}
 
 				// Flee
 				particleEffect.emitters[i].parEmitSettings.fleeFromPoint = particleEffect.parEmitSettings[i].fleeFromPoint;
 				if (particleEffect.emitters[i].parEmitSettings.fleeFromPoint) {
 					std::cout << "RUN AWAY" << std::endl; 
+					flee(&particleEffect.emitters[i], glm::vec3(500, 700, 0));
 				}
 
 				// Repel
 				particleEffect.emitters[i].parEmitSettings.repel = particleEffect.parEmitSettings[i].repel;
 				if (particleEffect.emitters[i].parEmitSettings.repel) {
 					std::cout << "GET AWAY FROM ME" << std::endl;
+					flee(&particleEffect.emitters[i], glm::vec3(mousePositionFlipped.x, mousePositionFlipped.y, 0));
 				}
 
 				// Attract
 				particleEffect.emitters[i].parEmitSettings.attract = particleEffect.parEmitSettings[i].attract;
 				if (particleEffect.emitters[i].parEmitSettings.attract) {
 					std::cout << "OHHH MYYY" << std::endl;
+					seek(&particleEffect.emitters[i], glm::vec3(mousePositionFlipped.x, mousePositionFlipped.y, 0));
 				}
 
 				// Follow Path
