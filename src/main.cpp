@@ -261,11 +261,45 @@ void DisplayCallbackFunction(void)
 				particleEffect.emitters[i].parEmitSettings.size     = particleEffect.parEmitSettings[i].size;
 				particleEffect.emitters[i].parEmitSettings.mass     = particleEffect.parEmitSettings[i].mass;
 				
-				// physics
+
+				// physics //
+				// Seek
 				particleEffect.emitters[i].parEmitSettings.seekToPoint = particleEffect.parEmitSettings[i].seekToPoint;
 				if (particleEffect.emitters[i].parEmitSettings.seekToPoint) {
+					std::cout << "I'M GOING TO FIND YOU" << std::endl;
 					applyForcesToParticleSystem(&particleEffect.emitters[i], glm::vec3(500, 700, 0));
 				}
+
+				// Flee
+				particleEffect.emitters[i].parEmitSettings.fleeFromPoint = particleEffect.parEmitSettings[i].fleeFromPoint;
+				if (particleEffect.emitters[i].parEmitSettings.fleeFromPoint) {
+					std::cout << "RUN AWAY" << std::endl; 
+				}
+
+				// Repel
+				particleEffect.emitters[i].parEmitSettings.repel = particleEffect.parEmitSettings[i].repel;
+				if (particleEffect.emitters[i].parEmitSettings.repel) {
+					std::cout << "GET AWAY FROM ME" << std::endl;
+				}
+
+				// Attract
+				particleEffect.emitters[i].parEmitSettings.attract = particleEffect.parEmitSettings[i].attract;
+				if (particleEffect.emitters[i].parEmitSettings.attract) {
+					std::cout << "OHHH MYYY" << std::endl;
+				}
+
+				// Follow Path
+				particleEffect.emitters[i].parEmitSettings.followPath = particleEffect.parEmitSettings[i].followPath;
+				if (particleEffect.emitters[i].parEmitSettings.followPath) {
+					std::cout << "DUM DE DUM" << std::endl;
+				}
+
+				// Gravity
+				particleEffect.emitters[i].parEmitSettings.gravity = particleEffect.parEmitSettings[i].gravity;
+				if (particleEffect.emitters[i].parEmitSettings.gravity) {
+					std::cout << "GOING DOWN" << std::endl;
+				}
+
 
 				// update and draw
 				particleEffect.emitters[i].update(deltaTime);

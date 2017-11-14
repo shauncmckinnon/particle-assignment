@@ -47,7 +47,7 @@ struct ParEmitSettings {
 	glm::vec2	 lifetime	   = glm::vec2(10.0f, 50.0f);
 	glm::vec2	 rate		   = glm::vec2(0.0f, 1.0f);
 	float	 duration		   = 20.0f;
-	bool		 gravity = false;
+	bool		 gravity	   = false;
 	bool		 seekToPoint   = false;
 	bool		 fleeFromPoint = false;
 	bool		 repel		   = false;
