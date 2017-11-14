@@ -63,9 +63,9 @@ void Initialize()
 }
 
 // These values are controlled by imgui
-bool applySeekingForce = true;
-bool magnetActive = false;
+float gravityForceScale = 200.0f;
 float seekingForceScale = 200.0f;
+float fleeingForceScale = 200.0f;
 float minSeekingForceScale = -200.0f;
 float maxSeekingForceScale = 200.0f;
 
@@ -90,7 +90,7 @@ void flee(ParticleEmitter* e, glm::vec3 target)
 	for (int i = 0; i < e->getNumParticles(); i++) {
 		glm::vec3 fleeVector = target + e->getParticlePosition(i);
 		glm::vec3 fleeDirection = glm::normalize(fleeVector);
-		glm::vec3 seekForce = fleeDirection * seekingForceScale;
+		glm::vec3 seekForce = fleeDirection * fleeingForceScale;
 
 		e->applyForceToParticle(i, seekForce);
 	}
@@ -251,8 +251,11 @@ void DisplayCallbackFunction(void)
 		ImGui::SliderFloat("Duration Range", &particleEffect.parEmitSettings[particleEmitterIndex].duration, 1.0f, 100.0f);
 
 		ImGui::Checkbox("Gravity", &particleEffect.parEmitSettings[particleEmitterIndex].gravity);
+		ImGui::SliderFloat("Amount of Gravity", &gravityForceScale, 0.0f, 1000.0f);
 		ImGui::Checkbox("Seek", &particleEffect.parEmitSettings[particleEmitterIndex].seekToPoint);
+		ImGui::SliderFloat("Seeking Force Scale", &seekingForceScale, 0.0f, 1000.0f);
 		ImGui::Checkbox("Flee", &particleEffect.parEmitSettings[particleEmitterIndex].fleeFromPoint);
+		ImGui::SliderFloat("Fleeing Force Scale", &fleeingForceScale, 0.0f, 1000.0f);
 		ImGui::Checkbox("Repel", &particleEffect.parEmitSettings[particleEmitterIndex].repel);
 		ImGui::Checkbox("Attract", &particleEffect.parEmitSettings[particleEmitterIndex].attract);
 		ImGui::Checkbox("Follow Path", &particleEffect.parEmitSettings[particleEmitterIndex].followPath);
