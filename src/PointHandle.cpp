@@ -1,3 +1,8 @@
+/*
+Shaun McKinnon - 100642799
+Selina Daley   - 100558926
+Dan Munusami   - 100552012
+*/
 #include "PointHandle.h"
 #include "TTK\GraphicsUtils.h"
 

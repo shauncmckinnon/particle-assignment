@@ -1,3 +1,8 @@
+/*
+Shaun McKinnon - 100642799
+Selina Daley   - 100558926
+Dan Munusami   - 100552012
+*/
 #pragma once
 
 #include <vector>
@@ -19,6 +24,7 @@ public:
 	bool save();
 	ParticleEffectSettings load(std::string filename);
 	void setupEmitters();
+	void resetEmitters();
 	friend std::ostream& operator << (std::ostream& stream, ParticleEffectSettings settings);
 
 	// data members

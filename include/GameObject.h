@@ -1,4 +1,8 @@
-// Shaun McKinnon - 100642799 //
+/*
+Shaun McKinnon - 100642799
+Selina Daley   - 100558926
+Dan Munusami   - 100552012
+*/
 #pragma once
 
 #include <GLM/glm.hpp>

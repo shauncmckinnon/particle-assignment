@@ -1,3 +1,8 @@
+/*
+Shaun McKinnon - 100642799
+Selina Daley   - 100558926
+Dan Munusami   - 100552012
+*/
 #include "ParticleEffect.h"
 #define RAW reinterpret_cast<char*>
 
@@ -133,8 +138,16 @@ void ParticleEffect::setupEmitters() {
 
 		// write parEmitSettings
 		emitters[i].parEmitSettings = parEmitSettings[i];
+	}
+}
 
-		//applyForcesToParticleSystem(&emitter[i], glm::vec3(500, 700, 0));
+void ParticleEffect::resetEmitters()
+{
+	for (int i = 0; i < parEmitSettings.size(); i++)
+	{
+		// Physics properties
+		emitters[i].reset();
+		emitters[i].update(0.01f);
 	}
 }
 
